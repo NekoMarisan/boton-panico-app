@@ -1,50 +1,83 @@
-# Welcome to your Expo app 👋
+# Botón de Pánico - App Móvil
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Este proyecto es una aplicación móvil desarrollada con **React Native y Expo**, diseñada para enviar alertas de emergencia de manera rápida y confiable a contactos predefinidos o a un centro de seguridad.
 
-## Get started
+---
 
-1. Install dependencies
+## Funcionalidades principales
 
-   ```bash
-   npm install
-   ```
+- **Botón de emergencia:** Permite enviar alertas instantáneas con un solo toque.  
+- **Notificaciones automáticas:** Envía un mensaje con la ubicación actual a los contactos registrados.  
+- **Historial de alertas:** Registro de eventos y notificaciones enviadas.  
+- **Interfaz sencilla y rápida:** Pensada para situaciones críticas, con navegación intuitiva y minimalista.
 
-2. Start the app
+---
 
-   ```bash
-   npx expo start
-   ```
+## Tecnologías utilizadas
 
-In the output, you'll find options to open the app in a
+- **Frontend:** React Native con Expo  
+- **Backend:** Node.js / Express (si aplica)  
+- **Base de datos:** SQLite / Firebase / PostgreSQL (según implementación)  
+- **Autenticación y seguridad:** Manejo de usuarios y almacenamiento seguro de datos
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+---
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Instalación y uso
 
-## Get a fresh project
-
-When you're ready, run:
+1. Clonar el repositorio:
 
 ```bash
-npm run reset-project
+git clone https://github.com/tuUsuario/nombre-del-proyecto.git
+cd nombre-del-proyecto
+````
+
+2. Instalar dependencias:
+
+```bash
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+3. Iniciar la aplicación:
 
-## Learn more
+```bash
+npx expo start
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+4. Abrir la app en tu dispositivo:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+* Android: Emulador o Expo Go
+* iOS: Simulador o Expo Go
 
-## Join the community
+---
 
-Join our community of developers creating universal apps.
+## Estructura del proyecto
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+* **app/**: Código principal de la aplicación (pantallas y componentes)
+* **assets/**: Imágenes, iconos y recursos visuales
+* **backend/** (si aplica): API y lógica del servidor
+* **README.md**: Información del proyecto
+
+---
+
+## Cómo contribuir
+
+1. Haz un fork del proyecto.
+2. Crea una rama para tu feature:
+
+```bash
+git checkout -b feature/nueva-funcionalidad
+```
+
+3. Haz commit de tus cambios:
+
+```bash
+git commit -m "Descripción del cambio"
+```
+
+4. Sube tu rama al repositorio:
+
+```bash
+git push origin feature/nueva-funcionalidad
+```
+
+5. Crea un Pull Request en GitHub.
