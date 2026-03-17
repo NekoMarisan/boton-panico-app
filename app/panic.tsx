@@ -92,13 +92,13 @@ const styles = StyleSheet.create({
     paddingBottom:40
   },
 
-  topMenu:{
-    width:"100%",
-    flexDirection:"row",
-    justifyContent:"space-around",
-    alignItems:"center",
-    marginTop:30
-  },
+topMenu: {
+  flexDirection: "row",
+  justifyContent: "center", // centra todos los botones
+  alignItems: "center",
+  marginTop: 30,
+  paddingHorizontal: 10,
+},
 
   centerArea:{
     justifyContent:"center",

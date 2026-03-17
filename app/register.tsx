@@ -1,62 +1,101 @@
 import { View, Text, StyleSheet, TextInput, Image, Pressable, Alert } from "react-native";
 import { useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 
 export default function Register() {
 
-const [nombre,setNombre] = useState("Juan Perez");
-const [ci,setCi] = useState("1234567");
+/* recibir datos enviados desde scanDni */
+
+const { nombre: nombreScan, ci: ciScan, fotoCI } = useLocalSearchParams();
+
+/* estados del formulario */
+
+const [nombre,setNombre] = useState(nombreScan || "");
+const [ci,setCi] = useState(ciScan || "");
 const [celular,setCelular] = useState("");
 const [email,setEmail] = useState("");
 
-const foto = "https://i.imgur.com/2yaf2wb.png";
+/* guardar usuario */
 
 const guardarUsuario = async () => {
 
+/* validar campos */
+
 if(!nombre || !ci || !celular){
-Alert.alert("Error","Debes completar todos los campos obligatorios");
+
+Alert.alert(
+"Error",
+"Debes completar todos los campos obligatorios"
+);
+
 return;
+
 }
+
+/* validar celular */
 
 if(celular.length < 8){
-Alert.alert("Error","El número de celular debe tener 8 dígitos");
+
+Alert.alert(
+"Error",
+"El número de celular debe tener 8 dígitos"
+);
+
 return;
+
 }
 
+/* crear objeto usuario */
+
 const usuario = {
+
 nombre,
 ci,
 celular,
-email
+email,
+
+/* foto del carnet obtenida del escaneo */
+
+fotoCI
+
 };
 
 try{
+
+/* guardar datos */
 
 await AsyncStorage.setItem(
 "usuarioDatos",
 JSON.stringify(usuario)
 );
 
+/* marcar usuario registrado */
+
 await AsyncStorage.setItem(
 "usuarioRegistrado",
 "true"
 );
 
+/* ir a verificación facial */
+
 Alert.alert(
 "Registro completado",
-"Se han registrado tus datos correctamente",
+"Ahora debes verificar tu identidad con una selfie",
 [
 {
 text:"Continuar",
-onPress:()=> router.replace("/panic")
+onPress:()=> router.replace("/login-face")
 }
 ]
 );
 
 }catch(error){
 
-Alert.alert("Error","No se pudo guardar la información");
+Alert.alert(
+"Error",
+"No se pudo guardar la información"
+);
 
 }
 
@@ -66,12 +105,22 @@ return(
 
 <View style={styles.container}>
 
-<Text style={styles.title}>REGISTRAR USUARIO</Text>
+<Text style={styles.title}>
+REGISTRAR USUARIO
+</Text>
+
+{/* mostrar foto del carnet */}
+
+{fotoCI && (
 
 <Image
-source={{uri:foto}}
+source={{uri:fotoCI}}
 style={styles.avatar}
 />
+
+)}
+
+{/* nombre (llenado automáticamente desde el carnet) */}
 
 <TextInput
 style={styles.input}
@@ -79,6 +128,8 @@ value={nombre}
 onChangeText={setNombre}
 placeholder="Nombre de usuario"
 />
+
+{/* CI (llenado automáticamente desde el carnet) */}
 
 <TextInput
 style={styles.input}
@@ -89,6 +140,8 @@ keyboardType="numeric"
 maxLength={10}
 />
 
+{/* celular */}
+
 <TextInput
 style={styles.input}
 value={celular}
@@ -98,6 +151,8 @@ keyboardType="phone-pad"
 maxLength={8}
 />
 
+{/* email */}
+
 <TextInput
 style={styles.input}
 value={email}
@@ -106,6 +161,8 @@ placeholder="Email"
 keyboardType="email-address"
 autoCapitalize="none"
 />
+
+{/* botón registrar */}
 
 <Pressable
 style={styles.button}
@@ -121,6 +178,7 @@ REGISTRAR USUARIO
 </View>
 
 );
+
 }
 
 const styles = StyleSheet.create({
@@ -135,17 +193,17 @@ title:{
 textAlign:"center",
 color:"#0b5f1b",
 fontWeight:"bold",
-fontSize:18,
+fontSize:20,
 marginBottom:20
 },
 
 avatar:{
-width:120,
-height:120,
-borderRadius:60,
+width:140,
+height:140,
+borderRadius:10,
 alignSelf:"center",
 marginBottom:20,
-borderWidth:4,
+borderWidth:3,
 borderColor:"#0b5f1b"
 },
 
@@ -153,7 +211,7 @@ input:{
 borderWidth:1,
 borderColor:"#ddd",
 borderRadius:8,
-padding:10,
+padding:12,
 marginBottom:15
 },
 

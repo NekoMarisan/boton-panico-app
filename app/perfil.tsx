@@ -3,9 +3,18 @@ import { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Header from "../components/Header";
 
+type Usuario = {
+nombre:string
+ci:string
+celular:string
+email?:string
+fotoCI?:string
+selfie?:string
+}
+
 export default function Perfil(){
 
-const [usuario,setUsuario] = useState(null);
+const [usuario,setUsuario] = useState<Usuario | null>(null);
 
 useEffect(()=>{
 cargarUsuario();
@@ -33,30 +42,40 @@ return(
 
 <>
 
-<Text style={styles.label}>Nombre</Text>
-<Text style={styles.value}>{usuario.nombre}</Text>
+<View style={styles.card}>
 
-<Text style={styles.label}>CI</Text>
-<Text style={styles.value}>{usuario.ci}</Text>
+{usuario.selfie && (
+<Image
+source={{uri:usuario.selfie}}
+style={styles.avatar}
+/>
+)}
 
-<Text style={styles.label}>Teléfono</Text>
-<Text style={styles.value}>{usuario.telefono}</Text>
+<Text style={styles.name}>{usuario.nombre}</Text>
+
+<Text style={styles.info}>CI: {usuario.ci}</Text>
+<Text style={styles.info}>Celular: {usuario.celular}</Text>
+<Text style={styles.info}>Email: {usuario.email}</Text>
+
+</View>
 
 
-<Text style={styles.section}>Documento de identidad</Text>
+{usuario.fotoCI && (
+
+<View style={styles.section}>
+
+<Text style={styles.sectionTitle}>
+Documento de identidad
+</Text>
 
 <Image
 source={{uri:usuario.fotoCI}}
 style={styles.image}
 />
 
+</View>
 
-<Text style={styles.section}>Selfie de verificación</Text>
-
-<Image
-source={{uri:usuario.selfie}}
-style={styles.image}
-/>
+)}
 
 </>
 
@@ -76,21 +95,46 @@ container:{
 padding:20
 },
 
-label:{
-fontSize:14,
-color:"#666"
+card:{
+backgroundColor:"#fff",
+borderRadius:15,
+padding:20,
+alignItems:"center",
+shadowColor:"#000",
+shadowOpacity:0.2,
+shadowRadius:8,
+elevation:5,
+marginBottom:25
 },
 
-value:{
-fontSize:18,
+avatar:{
+width:120,
+height:120,
+borderRadius:60,
+marginBottom:10,
+borderWidth:3,
+borderColor:"#0b5f1b"
+},
+
+name:{
+fontSize:20,
 fontWeight:"bold",
-marginBottom:15
+marginBottom:10
+},
+
+info:{
+fontSize:16,
+color:"#444",
+marginBottom:5
 },
 
 section:{
-fontSize:16,
+marginBottom:20
+},
+
+sectionTitle:{
+fontSize:18,
 fontWeight:"bold",
-marginTop:20,
 marginBottom:10
 },
 

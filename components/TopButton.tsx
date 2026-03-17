@@ -24,20 +24,19 @@ export default function TopButton({ icon, title, onPress }: any){
 }
 
 const styles = StyleSheet.create({
+button: {
+  width: 70,
+  height: 70,
+  backgroundColor: "#f2f2f2",
+  borderRadius: 12,
+  justifyContent: "center",
+  alignItems: "center",
+  marginHorizontal: 3, // espacio entre cada botón
+},
 
-  button:{
-    width:85,
-    height:85,
-    backgroundColor:"#f2f2f2",
-    borderRadius:15,
-    justifyContent:"center",
-    alignItems:"center"
-  },
-
-  text:{
-    marginTop:5,
-    fontSize:12,
-    textAlign:"center"
-  }
-
+text: {
+  marginTop: 4,
+  fontSize: 11,
+  textAlign: "center",
+}
 });

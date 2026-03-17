@@ -5,7 +5,7 @@ import { router } from "expo-router";
 export default function Permissions(){
 
 const aceptar = () => {
-router.replace("/register");
+router.replace("/scanDni");
 };
 
 return(
