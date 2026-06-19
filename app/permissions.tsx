@@ -1,11 +1,14 @@
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import * as Notifications from 'expo-notifications';
 
 export default function Permissions(){
 
-const aceptar = () => {
-router.replace("/scanDni");
+const aceptar = async () => {
+  // Pedir permiso de notificaciones al presionar Aceptar
+  await Notifications.requestPermissionsAsync();
+  router.replace("/scanDni");
 };
 
 return(
@@ -36,6 +39,14 @@ Para ofrecerte la mejor experiencia, necesitamos acceder a los siguientes permis
 <MaterialIcons name="photo-camera" size={28} color="#0b5f1b"/>
 <Text style={styles.permissionText}>
 <Text style={styles.bold}>Cámara:</Text> Para que puedas tomar fotos y videos directamente desde la app.
+</Text>
+</View>
+
+{/* NUEVO: permiso de notificaciones */}
+<View style={styles.permissionItem}>
+<MaterialIcons name="notifications" size={28} color="#0b5f1b"/>
+<Text style={styles.permissionText}>
+<Text style={styles.bold}>Notificaciones:</Text> Para avisarte sobre el estado de tus alertas y denuncias.
 </Text>
 </View>
 

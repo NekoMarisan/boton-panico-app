@@ -1,157 +1,196 @@
-import { View, Text, StyleSheet, Pressable } from "react-native";
-import { CameraView, useCameraPermissions } from "expo-camera";
-import { useRef } from "react";
-import { router } from "expo-router";
+import { View, Text, StyleSheet, TextInput, Image, Pressable, Alert } from "react-native";
+import { useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { router, useLocalSearchParams } from "expo-router";
 
-export default function LoginFace() {
+export default function Register() {
 
-const [permission, requestPermission] = useCameraPermissions();
-const cameraRef = useRef<any>(null);
+  /* recibir datos enviados desde scanDni */
+  const params = useLocalSearchParams();
 
-/* tomar selfie */
+  // 👇 aseguramos que sean strings
+  const nombreScan = typeof params.nombre === "string" ? params.nombre : "";
+  const ciScan = typeof params.ci === "string" ? params.ci : "";
+  const fotoCI = typeof params.foto === "string" ? params.foto : "";
 
-const tomarSelfie = async () => {
+  /* estados del formulario */
+  const [nombre,setNombre] = useState(nombreScan);
+  const [ci,setCi] = useState(ciScan);
+  const [celular,setCelular] = useState("");
+  const [email,setEmail] = useState("");
 
-if(!cameraRef.current) return;
+  /* guardar usuario */
+  const guardarUsuario = async () => {
 
-/* tomar foto */
+    if(!nombre || !ci || !celular){
+      Alert.alert("Error","Debes completar los campos obligatorios");
+      return;
+    }
 
-const photo = await cameraRef.current.takePictureAsync();
+    try{
 
-console.log("Selfie tomada:",photo.uri);
+      const response = await fetch("http://192.168.11.115:3000/usuarios", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          nombre,
+          ci,
+          celular,
+          email,
+          foto_ci: fotoCI,   // ✅ ahora sí existe
+          selfie: fotoCI     // ⚠️ temporal (luego usarás selfie real)
+        })
+      });
 
-/* obtener usuario guardado */
+      const data = await response.json();
 
-const datos = await AsyncStorage.getItem("usuarioDatos");
+      if(!response.ok){
+        Alert.alert("Error", data.error || "No se pudo registrar");
+        return;
+      }
 
-if(datos){
+      // guardar localmente
+      await AsyncStorage.setItem("usuarioDatos", JSON.stringify(data));
+      await AsyncStorage.setItem("usuarioRegistrado","true");
 
-const usuario = JSON.parse(datos);
+      Alert.alert(
+        "Registro exitoso",
+        "Usuario registrado correctamente",
+        [
+          {
+            text:"Continuar",
+            onPress:()=> router.replace("/panic")
+          }
+        ]
+      );
 
-/* agregar selfie al usuario */
+    }catch(error){
+      Alert.alert("Error","No se pudo conectar con el servidor");
+    }
 
-usuario.selfie = photo.uri;
+  };
 
-/* guardar nuevamente */
+  return(
 
-await AsyncStorage.setItem(
-"usuarioDatos",
-JSON.stringify(usuario)
-);
+    <View style={styles.container}>
 
-}
+      <Text style={styles.title}>
+        REGISTRAR USUARIO
+      </Text>
 
-/* ir a pantalla principal */
+      {/* mostrar foto del carnet */}
+      {fotoCI ? (
+        <Image
+          source={{uri:fotoCI}}
+          style={styles.avatar}
+        />
+      ) : (
+        <Text style={{textAlign:"center", marginBottom:20}}>
+          No hay foto disponible
+        </Text>
+      )}
 
-router.replace("/panic");
+      {/* nombre */}
+      <TextInput
+        style={styles.input}
+        value={nombre}
+        onChangeText={setNombre}
+        placeholder="Nombre de usuario"
+      />
 
-};
+      {/* CI */}
+      <TextInput
+        style={styles.input}
+        value={ci}
+        onChangeText={setCi}
+        placeholder="C.I."
+        keyboardType="numeric"
+        maxLength={10}
+      />
 
-/* permisos cámara */
+      {/* celular */}
+      <TextInput
+        style={styles.input}
+        value={celular}
+        onChangeText={setCelular}
+        placeholder="Celular"
+        keyboardType="phone-pad"
+        maxLength={8}
+      />
 
-if (!permission) {
-return <Text>Cargando cámara...</Text>;
-}
+      {/* email */}
+      <TextInput
+        style={styles.input}
+        value={email}
+        onChangeText={setEmail}
+        placeholder="Email"
+        keyboardType="email-address"
+        autoCapitalize="none"
+      />
 
-if (!permission.granted) {
-return (
-<View style={styles.center}>
-<Text>Necesitamos permiso para usar la cámara</Text>
+      {/* botón */}
+      <Pressable
+        style={styles.button}
+        onPress={guardarUsuario}
+      >
+        <Text style={styles.buttonText}>
+          REGISTRAR USUARIO
+        </Text>
+      </Pressable>
 
-<Pressable onPress={requestPermission}>
-<Text style={{color:"#0b5f1b",marginTop:10}}>
-Conceder permiso
-</Text>
-</Pressable>
+    </View>
 
-</View>
-);
-}
-
-/* interfaz */
-
-return (
-
-<View style={styles.container}>
-
-<CameraView
-ref={cameraRef}
-style={StyleSheet.absoluteFillObject}
-facing="front"
-/>
-
-<View style={styles.overlay}>
-
-<View style={styles.faceFrame}/>
-
-<Text style={styles.title}>
-Coloque su rostro dentro del círculo
-</Text>
-
-<Pressable
-style={styles.button}
-onPress={tomarSelfie}
->
-
-<Text style={styles.buttonText}>
-TOMAR SELFIE
-</Text>
-
-</Pressable>
-
-</View>
-
-</View>
-
-);
+  );
 
 }
 
 const styles = StyleSheet.create({
 
-container:{
-flex:1
-},
+  container:{
+    flex:1,
+    backgroundColor:"#fff",
+    padding:20
+  },
 
-center:{
-flex:1,
-justifyContent:"center",
-alignItems:"center"
-},
+  title:{
+    textAlign:"center",
+    color:"#0b5f1b",
+    fontWeight:"bold",
+    fontSize:20,
+    marginBottom:20
+  },
 
-overlay:{
-flex:1,
-justifyContent:"center",
-alignItems:"center"
-},
+  avatar:{
+    width:140,
+    height:140,
+    borderRadius:10,
+    alignSelf:"center",
+    marginBottom:20,
+    borderWidth:3,
+    borderColor:"#0b5f1b"
+  },
 
-faceFrame:{
-width:220,
-height:220,
-borderRadius:110,
-borderWidth:4,
-borderColor:"#00ff88"
-},
+  input:{
+    borderWidth:1,
+    borderColor:"#ddd",
+    borderRadius:8,
+    padding:12,
+    marginBottom:15
+  },
 
-title:{
-color:"white",
-fontSize:18,
-marginTop:20,
-fontWeight:"bold"
-},
+  button:{
+    backgroundColor:"#0b5f1b",
+    padding:15,
+    borderRadius:8,
+    marginTop:10
+  },
 
-button:{
-marginTop:30,
-backgroundColor:"#0b5f1b",
-paddingHorizontal:40,
-paddingVertical:15,
-borderRadius:10
-},
-
-buttonText:{
-color:"#fff",
-fontWeight:"bold"
-}
+  buttonText:{
+    color:"#fff",
+    textAlign:"center",
+    fontWeight:"bold"
+  }
 
 });

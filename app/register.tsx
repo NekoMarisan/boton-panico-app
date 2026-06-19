@@ -2,230 +2,196 @@ import { View, Text, StyleSheet, TextInput, Image, Pressable, Alert } from "reac
 import { useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useLocalSearchParams } from "expo-router";
+import * as Notifications from 'expo-notifications';
+import { supabase } from '../services/supabase';
 
 export default function Register() {
 
-/* recibir datos enviados desde scanDni */
+  const params = useLocalSearchParams();
 
-const { nombre: nombreScan, ci: ciScan, fotoCI } = useLocalSearchParams();
+  const nombreScan = typeof params.nombre === "string" ? params.nombre : "";
+  const ciScan = typeof params.ci === "string" ? params.ci : "";
+  const fotoCI = typeof params.foto === "string" ? params.foto : "";
+  const selfie = typeof params.selfie === "string" ? params.selfie : "";
 
-/* estados del formulario */
+  const [nombre, setNombre] = useState(nombreScan);
+  const [ci, setCi] = useState(ciScan);
+  const [celular, setCelular] = useState("");
+  const [email, setEmail] = useState("");
 
-const [nombre,setNombre] = useState(nombreScan || "");
-const [ci,setCi] = useState(ciScan || "");
-const [celular,setCelular] = useState("");
-const [email,setEmail] = useState("");
+  const guardarUsuario = async () => {
 
-/* guardar usuario */
+    if (!nombre || !ci || !celular) {
+      Alert.alert("Error", "Debes completar los campos obligatorios");
+      return;
+    }
 
-const guardarUsuario = async () => {
+    try {
 
-/* validar campos */
+      // Pedir permiso y obtener push token
+      const { status } = await Notifications.requestPermissionsAsync();
+      let pushToken = null;
 
-if(!nombre || !ci || !celular){
+      if (status === 'granted') {
+        const tokenData = await Notifications.getExpoPushTokenAsync();
+        pushToken = tokenData.data;
+      }
 
-Alert.alert(
-"Error",
-"Debes completar todos los campos obligatorios"
-);
+      // Insertar usuario en Supabase incluyendo el push_token
+      const { data, error } = await supabase
+        .from('usuario_ciudadano')
+        .insert([{
+          nombre_completo: nombre,
+          ci,
+          celular,
+          email,
+          foto_ci: fotoCI,
+          selfie,
+          push_token: pushToken,
+          id_estado_ciudadano: 2
+        }])
+        .select()
+        .single();
 
-return;
+      if (error) {
+        Alert.alert("Error", error.message);
+        return;
+      }
 
-}
+      // Guardar localmente
+      await AsyncStorage.setItem("usuarioDatos", JSON.stringify(data));
+      await AsyncStorage.setItem("usuarioRegistrado", "true");
 
-/* validar celular */
+      Alert.alert(
+        "Registro exitoso",
+        "Usuario registrado correctamente",
+        [
+          {
+            text: "Continuar",
+            onPress: () => router.replace("/panic")
+          }
+        ]
+      );
 
-if(celular.length < 8){
+    } catch (error) {
+      Alert.alert("Error", "No se pudo conectar con el servidor");
+    }
 
-Alert.alert(
-"Error",
-"El número de celular debe tener 8 dígitos"
-);
+  };
 
-return;
+  return (
 
-}
+    <View style={styles.container}>
 
-/* crear objeto usuario */
+      <Text style={styles.title}>
+        REGISTRAR USUARIO
+      </Text>
 
-const usuario = {
+      {fotoCI ? (
+        <Image
+          source={{ uri: fotoCI }}
+          style={styles.avatar}
+        />
+      ) : (
+        <Text style={{ textAlign: "center", marginBottom: 20 }}>
+          No hay foto disponible
+        </Text>
+      )}
 
-nombre,
-ci,
-celular,
-email,
+      <TextInput
+        style={styles.input}
+        value={nombre}
+        onChangeText={setNombre}
+        placeholder="Nombre de usuario"
+      />
 
-/* foto del carnet obtenida del escaneo */
+      <TextInput
+        style={styles.input}
+        value={ci}
+        onChangeText={setCi}
+        placeholder="C.I."
+        keyboardType="numeric"
+        maxLength={10}
+      />
 
-fotoCI
+      <TextInput
+        style={styles.input}
+        value={celular}
+        onChangeText={setCelular}
+        placeholder="Celular"
+        keyboardType="phone-pad"
+        maxLength={8}
+      />
 
-};
+      <TextInput
+        style={styles.input}
+        value={email}
+        onChangeText={setEmail}
+        placeholder="Email"
+        keyboardType="email-address"
+        autoCapitalize="none"
+      />
 
-try{
+      <Pressable
+        style={styles.button}
+        onPress={guardarUsuario}
+      >
+        <Text style={styles.buttonText}>
+          REGISTRAR USUARIO
+        </Text>
+      </Pressable>
 
-/* guardar datos */
+    </View>
 
-await AsyncStorage.setItem(
-"usuarioDatos",
-JSON.stringify(usuario)
-);
-
-/* marcar usuario registrado */
-
-await AsyncStorage.setItem(
-"usuarioRegistrado",
-"true"
-);
-
-/* ir a verificación facial */
-
-Alert.alert(
-"Registro completado",
-"Ahora debes verificar tu identidad con una selfie",
-[
-{
-text:"Continuar",
-onPress:()=> router.replace("/login-face")
-}
-]
-);
-
-}catch(error){
-
-Alert.alert(
-"Error",
-"No se pudo guardar la información"
-);
-
-}
-
-};
-
-return(
-
-<View style={styles.container}>
-
-<Text style={styles.title}>
-REGISTRAR USUARIO
-</Text>
-
-{/* mostrar foto del carnet */}
-
-{fotoCI && (
-
-<Image
-source={{uri:fotoCI}}
-style={styles.avatar}
-/>
-
-)}
-
-{/* nombre (llenado automáticamente desde el carnet) */}
-
-<TextInput
-style={styles.input}
-value={nombre}
-onChangeText={setNombre}
-placeholder="Nombre de usuario"
-/>
-
-{/* CI (llenado automáticamente desde el carnet) */}
-
-<TextInput
-style={styles.input}
-value={ci}
-onChangeText={setCi}
-placeholder="C.I."
-keyboardType="numeric"
-maxLength={10}
-/>
-
-{/* celular */}
-
-<TextInput
-style={styles.input}
-value={celular}
-onChangeText={setCelular}
-placeholder="Celular"
-keyboardType="phone-pad"
-maxLength={8}
-/>
-
-{/* email */}
-
-<TextInput
-style={styles.input}
-value={email}
-onChangeText={setEmail}
-placeholder="Email"
-keyboardType="email-address"
-autoCapitalize="none"
-/>
-
-{/* botón registrar */}
-
-<Pressable
-style={styles.button}
-onPress={guardarUsuario}
->
-
-<Text style={styles.buttonText}>
-REGISTRAR USUARIO
-</Text>
-
-</Pressable>
-
-</View>
-
-);
+  );
 
 }
 
 const styles = StyleSheet.create({
 
-container:{
-flex:1,
-backgroundColor:"#fff",
-padding:20
-},
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+    padding: 20
+  },
 
-title:{
-textAlign:"center",
-color:"#0b5f1b",
-fontWeight:"bold",
-fontSize:20,
-marginBottom:20
-},
+  title: {
+    textAlign: "center",
+    color: "#0b5f1b",
+    fontWeight: "bold",
+    fontSize: 20,
+    marginBottom: 20
+  },
 
-avatar:{
-width:140,
-height:140,
-borderRadius:10,
-alignSelf:"center",
-marginBottom:20,
-borderWidth:3,
-borderColor:"#0b5f1b"
-},
+  avatar: {
+    width: 140,
+    height: 140,
+    borderRadius: 10,
+    alignSelf: "center",
+    marginBottom: 20,
+    borderWidth: 3,
+    borderColor: "#0b5f1b"
+  },
 
-input:{
-borderWidth:1,
-borderColor:"#ddd",
-borderRadius:8,
-padding:12,
-marginBottom:15
-},
+  input: {
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 15
+  },
 
-button:{
-backgroundColor:"#0b5f1b",
-padding:15,
-borderRadius:8,
-marginTop:10
-},
+  button: {
+    backgroundColor: "#0b5f1b",
+    padding: 15,
+    borderRadius: 8,
+    marginTop: 10
+  },
 
-buttonText:{
-color:"#fff",
-textAlign:"center",
-fontWeight:"bold"
-}
+  buttonText: {
+    color: "#fff",
+    textAlign: "center",
+    fontWeight: "bold"
+  }
 
 });
